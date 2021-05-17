@@ -5,11 +5,11 @@ const Users = require('./users-model.js')
 
 const protectedPath = (req, res, next) => {
   // TODO remove req.session after setting it
-  if (req.session && req.session.user) {
+  if (req.session.user) {
     next()
   } else {
-    next({
-      message: `You shall not pass!`,
+    res.status(401).json({
+      message: "You shall not pass!",
     })
   }
 }

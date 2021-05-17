@@ -9,8 +9,14 @@ const db = require('../../data/db-config.js')
     "message": "You shall not pass!"
   }
 */
-function restricted() {
-
+function restricted(req, res, next) {
+  if (!req.session){
+    res.status(401).json({
+      message: "You shall not pass!",
+    })
+  } else {
+    next()
+  }
 }
 
 /*
