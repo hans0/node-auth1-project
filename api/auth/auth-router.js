@@ -40,10 +40,19 @@ router.post('/register', checkUsernameFree, checkPasswordLength, (req, res, next
     password,
     8,
   );
-  
+  Users.add({ username, password: passwordHash })
+    .then(user => {
+      res.status(200).json({
+        user_id: user.user_id,
+        username: user.username,
+      })
+    })
+    .catch(err => {
+      next(err);
+    });
 })
 
-/**
+/*
   2 [POST] /api/auth/login { "username": "sue", "password": "1234" }
 
   response:
@@ -57,13 +66,14 @@ router.post('/register', checkUsernameFree, checkPasswordLength, (req, res, next
   {
     "message": "Invalid credentials"
   }
- */
-router.post('/login', (req, res, next) => {
+*/
+router.post('/login', checkUsernameExists, checkPasswordLength, (req, res, next) => {
   const { username, password } = req.body;
 
   Users.findBy({ username })
     .then(([user]) => {
       if (user && bcrypt.compareSync(password, user.password)){
+        // what triggers the cookie magic
         req.session.user = user;
         res.status(200).json({
           message: `Welcome ${user.username}!`,
@@ -95,6 +105,26 @@ router.post('/login', (req, res, next) => {
     "message": "no session"
   }
  */
+router.get('/logout', (req, res, next) => {
+  if (req.session.user){
+    const { username } = req.session.user
+    req.session.destroy(err => {
+      if (err) {
+        res.json({
+          message: `you can not leave, ${username}`,
+        })
+      } else {
+        res.status(200).json({
+          message: "logged out",
+        })
+      }
+    })
+  } else {
+    res.status(200).json({
+      message: "no session",
+    })
+  }
+})
 
  
 // Don't forget to add the router to the `exports` object so it can be required in other modules
