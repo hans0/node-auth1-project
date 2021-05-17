@@ -1,3 +1,6 @@
+const db = require('../../data/db-config.js')
+
+
 /*
   If the user does not have a session saved in the server
 
@@ -18,8 +21,16 @@ function restricted() {
     "message": "Username taken"
   }
 */
-function checkUsernameFree() {
-
+function checkUsernameFree(req, res, next) {
+  if (db('users')
+        .select('user_id', 'username')
+        .where('username', req.body.username).length !== 0){
+    res.status(422).json({
+      message: "Username taken",
+    })
+  } else {
+    next();
+  }
 }
 
 /*
@@ -47,3 +58,9 @@ function checkPasswordLength() {
 }
 
 // Don't forget to add these to the `exports` object so they can be required in other modules
+module.exports = {
+  restricted,
+  checkUsernameFree,
+  checkUsernameExists,
+  checkPasswordLength,
+}
